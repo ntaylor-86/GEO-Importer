@@ -5,7 +5,7 @@
 #==============================================================================
 
 uDrive="/media/ubuntu/KINGSTON/Work Shell Scripts/GEO-BULK-IMPORT/U-Drive"
-copyGeoLocation="/home/gci/Network-Drives/U-Drive/NATHAN/BULK-IMPORT"
+copyGeoLocation="/media/ubuntu/KINGSTON/Work Shell Scripts/GEO-BULK-IMPORT/U-Drive/GEOs-Ready-Nest"
 
 # the default value is false, most of the customers use the GCI part code scheme
 # EXPR1234, VARL1234 etc, etc. Bustech and Redmond Gary use their part code
@@ -43,9 +43,9 @@ elif [[ "$customer" == "ATM TANKS" ]]; then
 fi
 
 if [[ $useClientPartCode == false ]]; then
-  cut -f1 "$fileName" >> temp-GCI-partCode.txt
+  cut -f1 "$fileName" > "$copyGeoLocation"/temp-GCI-partCode.txt
 else
-  cut -f2 "$fileName" >> temp-CUSTOMER-partCode.txt
+  cut -f2 "$fileName" > "$copyGeoLocation"/temp-CUSTOMER-partCode.txt
 fi
 
 #while read p || [[ -n $p ]]; do
