@@ -4,8 +4,8 @@
 #=====================  Change these varialbes to suit  =======================
 #==============================================================================
 
-uDrive="/media/ubuntu/KINGSTON/Work Shell Scripts/GEO-BULK-IMPORT/U-Drive"
-copyGeoLocation="/media/ubuntu/KINGSTON/Work Shell Scripts/GEO-BULK-IMPORT/U-Drive/GEOs-Ready-Nest"
+uDrive="/home/ubuntu/U-Drive"
+copyGeoLocation="/home/ubuntu/U-Drive/GEOs-Ready-Nest"
 
 # the default value is false, most of the customers use the GCI part code scheme
 # EXPR1234, VARL1234 etc, etc. Bustech and Redmond Gary use their part code
@@ -24,15 +24,26 @@ noExtension=${fileName%%.*}
 jobNumber=${noExtension%" "-*}
 customer=${noExtension#*-" "}
 
+#===========================================================
+#== Cleaning the file because windows new line characters ==
+#===========================================================
+
+dos2unix "$fileName"
+
+#===========================================================
+
 echo
 echo "The File Name = " $noExtension
 echo "The Job number from the file name is =" $jobNumber
 echo "The customer from the file name is = " $customer
-echo
 
 #============================================================================
 #====  Testing whether to use the client part code or the GCI part code  ====
 #============================================================================
+
+# prob going to change how this is done
+# maybe create an array with all the customers in it
+# and loop though it to test???
 
 if [[ "$customer" == "BUSTECH" ]]; then
   useClientPartCode=true
@@ -42,11 +53,41 @@ elif [[ "$customer" == "ATM TANKS" ]]; then
   useClientPartCode=true
 fi
 
+#============================================================================
+#======== Creating the temp txt file and creating the partCodeArray  ========
+#============================================================================
+
+# initialising the array
+declare -A partCodeArray
+# setting up the array counter
+counter=0
+# if statement determines which part code to useClientPartCode
+# false = use the GCI part code, true = use the client part code
 if [[ $useClientPartCode == false ]]; then
+  # cut -f1 will take the first data on each line before a tab and
+  # output that into a temp txt file
   cut -f1 "$fileName" > "$copyGeoLocation"/temp-GCI-partCode.txt
+  # while loop that takes each line from the txt file and adds it into the part code array
+  while IFS=$'\n' read -r line_data; do
+    partCodeArray[$counter]=$line_data
+    ((counter++))
+  done < "$copyGeoLocation"/temp-GCI-partCode.txt
 else
   cut -f2 "$fileName" > "$copyGeoLocation"/temp-CUSTOMER-partCode.txt
 fi
+
+echo
+echo "Listing all the parts in the array"
+echo
+counter=0
+for i in "${partCodeArray[@]}"
+do
+  echo ${partCodeArray[$counter]}
+  ((counter++))
+done
+
+
+#============================================================================
 
 #while read p || [[ -n $p ]]; do
 #  echo "$p"
@@ -63,6 +104,17 @@ fi
 echo
 echo "The customer folder is:" $customerFolder
 echo
-cd "$customerFolder"
+cd "$customerFolder"/ITMS*
 pwd
+currentDir=${PWD}
 echo
+
+counter=0
+for j in "${partCodeArray[@]}"
+do
+  echo "Copying" ${partCodeArray[$counter]}
+  lineNumber=$(($counter + 1))
+  cp ${partCodeArray[$counter]}*.[gG][eE][oO] "$copyGeoLocation/$lineNumber-.GEO"
+  ((counter++))
+  sleep 0.5
+done
